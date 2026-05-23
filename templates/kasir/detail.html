@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load format_rupiah %}
+{% block title %}Detail Transaksi - Toko Salfa{% endblock %}
+{% block page_title %}Detail Transaksi{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header bg-white fw-semibold">Info Transaksi</div>
+      <div class="card-body">
+        <table class="table table-sm mb-0">
+          <tr><td class="text-muted">Kode</td><td><code>{{ transaksi.kode_transaksi }}</code></td></tr>
+          <tr><td class="text-muted">Tanggal</td><td>{{ transaksi.tanggal|date:"d/m/Y H:i" }}</td></tr>
+          <tr><td class="text-muted">Kasir</td><td>{{ transaksi.kasir.username|default:"-" }}</td></tr>
+          <tr><td class="text-muted">Metode</td><td>{{ transaksi.get_metode_bayar_display }}</td></tr>
+          <tr>
+            <td class="text-muted">Status</td>
+            <td>
+              {% if transaksi.status == 'batal' %}
+                <span class="badge bg-danger">Dibatalkan</span>
+                <div class="text-muted small mt-1">{{ transaksi.alasan_batal }}</div>
+              {% else %}
+                <span class="badge bg-success">Selesai</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr><td class="text-muted">Total</td><td class="fw-bold">{{ transaksi.total|rupiah }}</td></tr>
+          <tr><td class="text-muted">Bayar</td><td>{{ transaksi.bayar|rupiah }}</td></tr>
+          <tr><td class="text-muted">Kembalian</td><td>{{ transaksi.kembalian|rupiah }}</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header bg-white fw-semibold">Item Pembelian</div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead class="table-light">
+            <tr><th>Produk</th><th>Harga</th><th>Jumlah</th><th>Subtotal</th></tr>
+          </thead>
+          <tbody>
+            {% for d in detail %}
+            <tr>
+              <td>{{ d.produk.nama }}</td>
+              <td>{{ d.harga_satuan|rupiah }}</td>
+              <td>{{ d.jumlah }} {{ d.produk.satuan }}</td>
+              <td>{{ d.subtotal|rupiah }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot class="table-light">
+            <tr>
+              <td colspan="3" class="text-end fw-bold">Total</td>
+              <td class="fw-bold">{{ transaksi.total|rupiah }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+      <a href="{% url 'kasir:riwayat' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Kembali
+      </a>
+      {% if transaksi.status == 'selesai' %}
+      <button class="btn btn-outline-primary" onclick="cetakStruk()">
+        <i class="bi bi-printer"></i> Cetak Struk
+      </button>
+      <a href="{% url 'kasir:batal' transaksi.pk %}" class="btn btn-outline-danger">
+        <i class="bi bi-x-circle"></i> Batalkan Transaksi
+      </a>
+      {% else %}
+      <span class="btn btn-danger disabled">
+        <i class="bi bi-x-circle"></i> Transaksi Dibatalkan
+      </span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Area Struk (tersembunyi) -->
+<div id="area-struk" style="display:none;">
+  <div style="font-family: monospace; font-size: 13px; padding: 16px; width: 300px;">
+    <div style="text-align:center; margin-bottom:8px;">
+      <div style="font-size:16px; font-weight:bold;">TOKO SALFA</div>
+      <div style="font-size:11px; color:#666;">Struk Pembayaran</div>
+      <div style="border-top: 1px dashed #999; margin: 8px 0;"></div>
+    </div>
+    <div style="display:flex; justify-content:space-between;"><span>Kode</span><span>{{ transaksi.kode_transaksi }}</span></div>
+    <div style="display:flex; justify-content:space-between;"><span>Tanggal</span><span>{{ transaksi.tanggal|date:"d/m/Y H:i" }}</span></div>
+    <div style="display:flex; justify-content:space-between;"><span>Kasir</span><span>{{ transaksi.kasir.username|default:"-" }}</span></div>
+    <div style="display:flex; justify-content:space-between;"><span>Metode</span><span>{{ transaksi.get_metode_bayar_display }}</span></div>
+    <div style="border-top: 1px dashed #999; margin: 8px 0;"></div>
+    {% for d in detail %}
+    <div style="display:flex; justify-content:space-between;">
+      <span>{{ d.produk.nama }} x{{ d.jumlah }}</span>
+      <span>{{ d.subtotal|rupiah }}</span>
+    </div>
+    <div style="font-size:11px; color:#888; margin-bottom:4px;">{{ d.harga_satuan|rupiah }} / item</div>
+    {% endfor %}
+    <div style="border-top: 1px dashed #999; margin: 8px 0;"></div>
+    <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>TOTAL</span><span>{{ transaksi.total|rupiah }}</span></div>
+    {% if transaksi.metode_bayar == 'tunai' %}
+    <div style="display:flex; justify-content:space-between;"><span>Bayar</span><span>{{ transaksi.bayar|rupiah }}</span></div>
+    <div style="display:flex; justify-content:space-between;"><span>Kembalian</span><span>{{ transaksi.kembalian|rupiah }}</span></div>
+    {% endif %}
+    <div style="border-top: 1px dashed #999; margin: 8px 0;"></div>
+    <div style="text-align:center; font-size:11px; color:#666;">Terima kasih sudah berbelanja!</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function cetakStruk() {
+  const isi = document.getElementById('area-struk').innerHTML;
+  const win = window.open('', '_blank', 'width=320,height=600');
+  win.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Struk - {{ transaksi.kode_transaksi }}</title>
+      <style>
+        body { padding: 10px; font-family: monospace; font-size: 13px; }
+        @media print { body { padding: 0; } }
+      </style>
+    </head>
+    <body onload="window.print()">
+      ${isi}
+    </body>
+    </html>
+  `);
+  win.document.close();
+}
+</script>
+{% endblock %}

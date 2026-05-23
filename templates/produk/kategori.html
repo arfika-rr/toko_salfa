@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load format_rupiah %}
+{% block title %}Kategori - Toko Salfa{% endblock %}
+{% block page_title %}Manajemen Kategori{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+
+  <!-- Form Tambah -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header bg-white fw-semibold">Tambah Kategori</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'produk:tambah_kategori' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Nama Kategori <span class="text-danger">*</span></label>
+            <input type="text" name="nama" class="form-control" placeholder="Contoh: Minuman" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Deskripsi</label>
+            <textarea name="deskripsi" class="form-control" rows="2" placeholder="Opsional..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-plus-lg"></i> Tambah
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daftar Kategori -->
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header bg-white">
+  <form method="get" class="d-flex gap-2 align-items-center">
+    <span class="fw-semibold me-2">Daftar Kategori</span>
+    <input type="text" name="cari" class="form-control form-control-sm"
+          placeholder="Cari kategori..." value="{{ cari|default:'' }}" style="max-width:200px;">
+    <button type="submit" class="btn btn-sm btn-secondary">Cari</button>
+    {% if cari %}
+    <a href="{% url 'produk:kategori' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
+    {% endif %}
+  </form>
+</div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>No</th>
+              <th>Nama Kategori</th>
+              <th>Deskripsi</th>
+              <th>Jumlah Produk</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for k in kategori %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td class="fw-semibold">{{ k.nama }}</td>
+              <td class="text-muted small">{{ k.deskripsi|default:"-" }}</td>
+              <td>
+                <span class="badge bg-primary">{{ k.produk_set.count }} produk</span>
+              </td>
+              <td>
+                <a href="{% url 'produk:edit_kategori' k.pk %}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'produk:hapus_kategori' k.pk %}"
+                   class="btn btn-sm btn-outline-danger"
+                   onclick="return confirm('Hapus kategori {{ k.nama }}?')">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">Belum ada kategori</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load format_rupiah %}
+{% block title %}Tambah Stok - Toko Salfa{% endblock %}
+{% block page_title %}Tambah Stok Masuk{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px;">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Produk <span class="text-danger">*</span></label>
+        <select name="produk" class="form-select" required>
+          <option value="">-- Pilih Produk --</option>
+          {% for p in produk %}
+          <option value="{{ p.id }}">{{ p.nama }} (Stok: {{ p.stok }} {{ p.satuan }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Jumlah <span class="text-danger">*</span></label>
+        <input type="number" name="jumlah" class="form-control" min="1" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Harga Beli <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text">Rp</span>
+          <input type="number" name="harga_beli" class="form-control" min="0" required>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Keterangan</label>
+        <textarea name="keterangan" class="form-control" rows="2" placeholder="Opsional..."></textarea>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i> Simpan
+        </button>
+        <a href="{% url 'stok:list' %}" class="btn btn-outline-secondary">Batal</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

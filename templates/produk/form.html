@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load format_rupiah %}
+{% block title %}{{ action }} Produk - Toko Salfa{% endblock %}
+{% block page_title %}{{ action }} Produk{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 700px;">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label class="form-label">Nama Produk <span class="text-danger">*</span></label>
+          <input type="text" name="nama" class="form-control" value="{{ produk.nama }}" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Kategori</label>
+          <select name="kategori" class="form-select">
+            <option value="">-- Pilih Kategori --</option>
+            {% for k in kategori %}
+            <option value="{{ k.id }}" {% if produk.kategori_id == k.id %}selected{% endif %}>{{ k.nama }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Barcode</label>
+          <input type="text" name="barcode" class="form-control" value="{{ produk.barcode }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Satuan</label>
+          <input type="text" name="satuan" class="form-control" value="{{ produk.satuan|default:'pcs' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Stok Minimum</label>
+          <input type="number" name="stok_minimum" class="form-control" value="{{ produk.stok_minimum|default:5 }}" min="0">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Harga Beli <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text">Rp</span>
+            <input type="number" name="harga_beli" class="form-control" value="{{ produk.harga_beli }}" required min="0">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Harga Jual <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text">Rp</span>
+            <input type="number" name="harga_jual" class="form-control" value="{{ produk.harga_jual }}" required min="0">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Stok Awal</label>
+          <input type="number" name="stok" class="form-control" value="{{ produk.stok|default:0 }}" min="0">
+        </div>
+        {% if action == 'Edit' %}
+        <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="aktif" id="aktif"
+              {% if produk.aktif %}checked{% endif %}>
+            <label class="form-check-label" for="aktif">Produk Aktif</label>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i> Simpan
+        </button>
+        <a href="{% url 'produk:list' %}" class="btn btn-outline-secondary">Batal</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

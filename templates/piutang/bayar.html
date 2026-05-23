@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load format_rupiah %}
+{% block title %}Bayar Piutang - Toko Salfa{% endblock %}
+{% block page_title %}Catat Pembayaran Piutang{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px;">
+  <div class="card-body">
+    <div class="alert alert-info mb-4">
+      <div class="fw-semibold">{{ piutang.pelanggan.nama }}</div>
+      <div class="small">Total: {{ piutang.nominal|rupiah }} |
+        Terbayar: {{ piutang.terbayar|rupiah }} |
+        <strong>Sisa: {{ piutang.sisa|rupiah }}</strong>
+      </div>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Jumlah Bayar <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text">Rp</span>
+          <input type="number" name="jumlah" class="form-control"
+                 min="1" max="{{ piutang.sisa }}" value="{{ piutang.sisa }}" required>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Catatan</label>
+        <textarea name="catatan" class="form-control" rows="2"></textarea>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">
+          <i class="bi bi-cash"></i> Simpan Pembayaran
+        </button>
+        <a href="{% url 'piutang:list' %}" class="btn btn-outline-secondary">Batal</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load format_rupiah %}
+{% block title %}Stok - Toko Salfa{% endblock %}
+{% block page_title %}Manajemen Stok{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-8">
+
+    <!-- Laporan Stok -->
+    <div class="card mb-3">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Laporan Stok Barang</span>
+        <div class="d-flex gap-2">
+          <a href="{% url 'stok:export_csv' %}" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-filetype-csv"></i> CSV
+          </a>
+          <a href="{% url 'stok:export_excel' %}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-file-earmark-excel"></i> Excel
+          </a>
+          <a href="{% url 'stok:export_pdf' %}" class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-file-earmark-pdf"></i> PDF
+          </a>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Nama Barang</th>
+              <th>Kategori</th>
+              <th>Harga Beli</th>
+              <th>Harga Jual</th>
+              <th>Stok</th>
+              <th>Satuan</th>
+              <th>Total Modal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in produk_semua %}
+            <tr>
+              <td>{{ p.nama }}</td>
+              <td>{{ p.kategori.nama|default:"-" }}</td>
+              <td>{{ p.harga_beli|rupiah }}</td>
+              <td>{{ p.harga_jual|rupiah }}</td>
+              <td>
+                {% if p.stok_menipis %}
+                  <span class="badge bg-warning text-dark">{{ p.stok }}</span>
+                {% else %}
+                  <span class="badge bg-success">{{ p.stok }}</span>
+                {% endif %}
+              </td>
+              <td>{{ p.satuan }}</td>
+              <td class="fw-semibold">{{ p.harga_beli|rupiah }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-muted py-3">Belum ada produk</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Histori Stok Masuk -->
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Histori Stok Masuk</span>
+        <a href="{% url 'stok:tambah' %}" class="btn btn-primary btn-sm">
+          <i class="bi bi-plus-lg"></i> Tambah Stok
+        </a>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Produk</th>
+              <th>Jumlah</th>
+              <th>Harga Beli</th>
+              <th>Tanggal</th>
+              <th>Dicatat Oleh</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in histori %}
+            <tr>
+              <td>{{ s.produk.nama }}</td>
+              <td><span class="badge bg-success">+{{ s.jumlah }} {{ s.produk.satuan }}</span></td>
+              <td>{{ s.harga_beli|rupiah }}</td>
+              <td>{{ s.tanggal|date:"d/m/Y H:i" }}</td>
+              <td>{{ s.dicatat_oleh.username|default:"-" }}</td>
+              <td class="text-muted small">{{ s.keterangan|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">Belum ada histori stok masuk</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header bg-white fw-semibold">Kondisi Stok Produk</div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for p in produk_semua %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <div class="small fw-semibold">{{ p.nama }}</div>
+              <div class="text-muted" style="font-size:.75rem">Min: {{ p.stok_minimum }} {{ p.satuan }}</div>
+            </div>
+            {% if p.stok_menipis %}
+              <span class="badge bg-warning text-dark">{{ p.stok }} {{ p.satuan }}</span>
+            {% else %}
+              <span class="badge bg-success">{{ p.stok }} {{ p.satuan }}</span>
+            {% endif %}
+          </li>
+          {% empty %}
+          <li class="list-group-item text-muted text-center py-3">Belum ada produk</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
