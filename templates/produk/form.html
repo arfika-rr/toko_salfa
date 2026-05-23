@@ -24,7 +24,18 @@
         </div>
         <div class="col-md-6">
           <label class="form-label">Barcode</label>
-          <input type="text" name="barcode" class="form-control" value="{{ produk.barcode }}">
+          <div class="input-group">
+            <input type="text" name="barcode" id="input-barcode-produk" class="form-control" value="{{ produk.barcode }}">
+            <button class="btn btn-outline-primary" type="button" id="btn-scan-produk">
+              <i class="bi bi-upc-scan"></i> Scan
+            </button>
+          </div>
+          <div id="scanner-produk" style="display:none;" class="mt-2">
+            <div id="reader-produk" style="width:100%; border-radius:8px; overflow:hidden;"></div>
+            <button type="button" class="btn btn-sm btn-outline-danger mt-1" id="btn-stop-scan-produk">
+              Tutup Kamera
+            </button>
+          </div>
         </div>
         <div class="col-md-3">
           <label class="form-label">Satuan</label>
@@ -72,4 +83,30 @@
     </form>
   </div>
 </div>
+
+{% block extra_js %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+let html5QrCodeProduk = null;
+
+document.getElementById('btn-scan-produk').addEventListener('click', function() {
+  document.getElementById('scanner-produk').style.display = 'block';
+  html5QrCodeProduk = new Html5Qrcode("reader-produk");
+  html5QrCodeProduk.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 100 } },
+    (barcode) => {
+      document.getElementById('input-barcode-produk').value = barcode;
+      html5QrCodeProduk.stop();
+      document.getElementById('scanner-produk').style.display = 'none';
+    }
+  );
+});
+
+document.getElementById('btn-stop-scan-produk').addEventListener('click', function() {
+  if (html5QrCodeProduk) html5QrCodeProduk.stop();
+  document.getElementById('scanner-produk').style.display = 'none';
+});
+</script>
+{% endblock %}
 {% endblock %}
