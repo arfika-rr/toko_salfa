@@ -89,34 +89,32 @@
 <script>
 let html5QrCodeProduk = null;
 
-document.getElementById('btn-scan-produk').addEventListener('click', function() {
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+<script>
+let codeReaderProduk = null;
+
+document.getElementById('btn-scan-produk').addEventListener('click', async function() {
   document.getElementById('scanner-produk').style.display = 'block';
-  html5QrCodeProduk = new Html5Qrcode("reader-produk");
-  html5QrCodeProduk.start(
-    { facingMode: "environment" },
-    {
-      fps: 10,
-      qrbox: { width: 250, height: 150 },
-      formatsToSupport: [
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.QR_CODE,
-      ]
-    },
-    (barcode) => {
-      document.getElementById('input-barcode-produk').value = barcode;
-      html5QrCodeProduk.stop();
-      document.getElementById('scanner-produk').style.display = 'none';
-    }
-  );
+  codeReaderProduk = new ZXing.BrowserMultiFormatReader();
+
+  try {
+    const videoInputDevices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
+    const selectedDeviceId = videoInputDevices[videoInputDevices.length - 1].deviceId;
+
+    codeReaderProduk.decodeFromVideoDevice(selectedDeviceId, 'reader-produk', (result, err) => {
+      if (result) {
+        document.getElementById('input-barcode-produk').value = result.getText();
+        codeReaderProduk.reset();
+        document.getElementById('scanner-produk').style.display = 'none';
+      }
+    });
+  } catch(err) {
+    alert('Tidak bisa akses kamera: ' + err);
+  }
 });
 
 document.getElementById('btn-stop-scan-produk').addEventListener('click', function() {
-  if (html5QrCodeProduk) html5QrCodeProduk.stop();
+  if (codeReaderProduk) codeReaderProduk.reset();
   document.getElementById('scanner-produk').style.display = 'none';
 });
 </script>

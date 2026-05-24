@@ -168,10 +168,10 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 <script>
 let keranjang = [];
-let html5QrCode = null;
+let codeReader = null;
 
 function formatRp(n) {
   return 'Rp ' + Number(n).toLocaleString('id-ID');
@@ -197,14 +197,12 @@ function tambahKeKeranjang(id, nama, harga, stok, satuan) {
 
 function renderKeranjang() {
   const list = document.getElementById('keranjang-list');
-  
   if (keranjang.length === 0) {
     list.innerHTML = '<div class="text-center text-muted py-4">Keranjang kosong</div>';
     document.getElementById('total-display').textContent = 'Rp0';
     document.getElementById('kembalian-display').textContent = 'Rp0';
     return;
   }
-
   list.innerHTML = keranjang.map((item, i) => `
     <div class="keranjang-item">
       <div class="flex-grow-1">
@@ -220,7 +218,6 @@ function renderKeranjang() {
       <div class="text-end small fw-semibold" style="min-width:70px">${formatRp(item.harga * item.jumlah)}</div>
     </div>
   `).join('');
-
   const total = keranjang.reduce((s, i) => s + i.harga * i.jumlah, 0);
   document.getElementById('total-display').textContent = formatRp(total);
   hitungKembalian();
@@ -299,13 +296,10 @@ function isiStruk(data, metode, bayar, total) {
     hour: '2-digit', minute: '2-digit'
   });
   const metodeLabel = {tunai: 'Tunai', transfer: 'Transfer', qris: 'QRIS', piutang: 'Piutang'};
-
   document.getElementById('struk-kode').textContent = data.kode;
   document.getElementById('struk-tanggal').textContent = tgl;
   document.getElementById('struk-metode').textContent = metodeLabel[metode] || metode;
   document.getElementById('struk-total').textContent = formatRp(total);
-
-  // Items
   document.getElementById('struk-items').innerHTML = keranjang.map(item => `
     <div class="d-flex justify-content-between">
       <span>${item.nama} x${item.jumlah}</span>
@@ -313,8 +307,6 @@ function isiStruk(data, metode, bayar, total) {
     </div>
     <div style="font-size:11px; color:#888; margin-bottom:4px;">${formatRp(item.harga)} / item</div>
   `).join('');
-
-  // Baris bayar & kembalian
   if (metode === 'tunai') {
     document.getElementById('struk-row-bayar').style.display = 'flex';
     document.getElementById('struk-row-kembalian').style.display = 'flex';
@@ -367,20 +359,15 @@ document.getElementById('input-barcode').addEventListener('keydown', async funct
   if (e.key === 'Enter') {
     const val = this.value.trim();
     if (!val) return;
-
-    // Coba cari barcode dulu
     const res = await fetch(`{% url 'kasir:barcode' %}?barcode=${val}`);
     const data = await res.json();
     if (data.found) {
       tambahKeKeranjang(data.id, data.nama, data.harga, data.stok, data.satuan);
       this.value = '';
-      // Reset tampilan produk
       document.querySelectorAll('.produk-card').forEach(c => c.style.display = 'block');
     } else {
-      // Coba cocokkan nama produk yang tampil
       const visible = document.querySelectorAll('.produk-card:not([style*="display: none"])');
       if (visible.length === 1) {
-        // Langsung tambah jika hanya 1 hasil
         const card = visible[0];
         tambahKeKeranjang(
           parseInt(card.dataset.id),
@@ -396,40 +383,34 @@ document.getElementById('input-barcode').addEventListener('keydown', async funct
   }
 });
 
-// Scan kamera
-document.getElementById('btn-scan').addEventListener('click', function() {
+// Scan kamera pakai ZXing
+document.getElementById('btn-scan').addEventListener('click', async function() {
   document.getElementById('scanner-box').style.display = 'block';
-  html5QrCode = new Html5Qrcode("reader");
-  html5QrCode.start(
-  { facingMode: "environment" },
-  {
-    fps: 10,
-    qrbox: { width: 250, height: 150 },
-    formatsToSupport: [
-      Html5QrcodeSupportedFormats.EAN_13,
-      Html5QrcodeSupportedFormats.EAN_8,
-      Html5QrcodeSupportedFormats.CODE_128,
-      Html5QrcodeSupportedFormats.CODE_39,
-      Html5QrcodeSupportedFormats.UPC_A,
-      Html5QrcodeSupportedFormats.UPC_E,
-      Html5QrcodeSupportedFormats.QR_CODE,
-    ]
-  },
-  async (barcode) => {
-    const res = await fetch(`{% url 'kasir:barcode' %}?barcode=${barcode}`);
-    const data = await res.json();
-    if (data.found) {
-      tambahKeKeranjang(data.id, data.nama, data.harga, data.stok, data.satuan);
-      html5QrCode.stop();
-      document.getElementById('scanner-box').style.display = 'none';
-    } else {
-      alert('Produk tidak ditemukan: ' + barcode);
-    }
+  codeReader = new ZXing.BrowserMultiFormatReader();
+  try {
+    const videoInputDevices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
+    const selectedDeviceId = videoInputDevices[videoInputDevices.length - 1].deviceId;
+    codeReader.decodeFromVideoDevice(selectedDeviceId, 'reader', async (result, err) => {
+      if (result) {
+        const barcode = result.getText();
+        const res = await fetch(`{% url 'kasir:barcode' %}?barcode=${barcode}`);
+        const data = await res.json();
+        if (data.found) {
+          tambahKeKeranjang(data.id, data.nama, data.harga, data.stok, data.satuan);
+          codeReader.reset();
+          document.getElementById('scanner-box').style.display = 'none';
+        } else {
+          alert('Produk tidak ditemukan: ' + barcode);
+        }
+      }
+    });
+  } catch(err) {
+    alert('Tidak bisa akses kamera: ' + err);
   }
-);
+});
 
 document.getElementById('btn-stop-scan').addEventListener('click', function() {
-  if (html5QrCode) html5QrCode.stop();
+  if (codeReader) codeReader.reset();
   document.getElementById('scanner-box').style.display = 'none';
 });
 </script>
