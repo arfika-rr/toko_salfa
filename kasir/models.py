@@ -42,4 +42,5 @@ class DetailTransaksi(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.transaksi.kode_transaksi} - {self.produk.nama}"
+        nama_produk = self.produk.nama if self.produk else "Produk Dihapus"
+        return f"{self.transaksi.kode_transaksi} - {nama_produk}"
