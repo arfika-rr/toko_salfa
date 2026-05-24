@@ -388,22 +388,24 @@ document.getElementById('btn-scan').addEventListener('click', async function() {
   document.getElementById('scanner-box').style.display = 'block';
   codeReader = new ZXing.BrowserMultiFormatReader();
   try {
-    const videoInputDevices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
-    const selectedDeviceId = videoInputDevices[videoInputDevices.length - 1].deviceId;
-    codeReader.decodeFromVideoDevice(selectedDeviceId, 'reader', async (result, err) => {
-      if (result) {
-        const barcode = result.getText();
-        const res = await fetch(`{% url 'kasir:barcode' %}?barcode=${barcode}`);
-        const data = await res.json();
-        if (data.found) {
-          tambahKeKeranjang(data.id, data.nama, data.harga, data.stok, data.satuan);
-          codeReader.reset();
-          document.getElementById('scanner-box').style.display = 'none';
-        } else {
-          alert('Produk tidak ditemukan: ' + barcode);
+    await codeReader.decodeFromConstraints(
+      { video: { facingMode: 'environment' } },
+      'reader',
+      async (result, err) => {
+        if (result) {
+          const barcode = result.getText();
+          const res = await fetch(`{% url 'kasir:barcode' %}?barcode=${barcode}`);
+          const data = await res.json();
+          if (data.found) {
+            tambahKeKeranjang(data.id, data.nama, data.harga, data.stok, data.satuan);
+            codeReader.reset();
+            document.getElementById('scanner-box').style.display = 'none';
+          } else {
+            alert('Produk tidak ditemukan: ' + barcode);
+          }
         }
       }
-    });
+    );
   } catch(err) {
     alert('Tidak bisa akses kamera: ' + err);
   }

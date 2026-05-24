@@ -94,15 +94,17 @@ document.getElementById('btn-scan-produk').addEventListener('click', async funct
   document.getElementById('scanner-produk').style.display = 'block';
   codeReaderProduk = new ZXing.BrowserMultiFormatReader();
   try {
-    const videoInputDevices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
-    const selectedDeviceId = videoInputDevices[videoInputDevices.length - 1].deviceId;
-    codeReaderProduk.decodeFromVideoDevice(selectedDeviceId, 'reader-produk', (result, err) => {
-      if (result) {
-        document.getElementById('input-barcode-produk').value = result.getText();
-        codeReaderProduk.reset();
-        document.getElementById('scanner-produk').style.display = 'none';
+    await codeReaderProduk.decodeFromConstraints(
+      { video: { facingMode: 'environment' } },
+      'reader-produk',
+      (result, err) => {
+        if (result) {
+          document.getElementById('input-barcode-produk').value = result.getText();
+          codeReaderProduk.reset();
+          document.getElementById('scanner-produk').style.display = 'none';
+        }
       }
-    });
+    );
   } catch(err) {
     alert('Tidak bisa akses kamera: ' + err);
   }
