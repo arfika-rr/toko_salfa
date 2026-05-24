@@ -83,12 +83,9 @@
     </form>
   </div>
 </div>
+{% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script>
-let html5QrCodeProduk = null;
-
 <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 <script>
 let codeReaderProduk = null;
@@ -96,11 +93,9 @@ let codeReaderProduk = null;
 document.getElementById('btn-scan-produk').addEventListener('click', async function() {
   document.getElementById('scanner-produk').style.display = 'block';
   codeReaderProduk = new ZXing.BrowserMultiFormatReader();
-
   try {
     const videoInputDevices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
     const selectedDeviceId = videoInputDevices[videoInputDevices.length - 1].deviceId;
-
     codeReaderProduk.decodeFromVideoDevice(selectedDeviceId, 'reader-produk', (result, err) => {
       if (result) {
         document.getElementById('input-barcode-produk').value = result.getText();
