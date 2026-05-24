@@ -19,6 +19,7 @@ def dashboard(request):
     keuntungan_hari_ini = sum(
         (d.harga_satuan - d.produk.harga_beli) * d.jumlah
         for d in detail_hari_ini.select_related('produk')
+        if d.produk is not None
     )
 
     # Transaksi bulan ini
@@ -38,6 +39,7 @@ def dashboard(request):
     keuntungan_bulan = sum(
         (d.harga_satuan - d.produk.harga_beli) * d.jumlah
         for d in detail_bulan.select_related('produk')
+        if d.produk is not None
     )
 
     context = {
