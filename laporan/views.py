@@ -11,7 +11,6 @@ import json
 import csv
 
 def get_data_laporan(bulan, tahun):
-    """Helper: ambil data laporan berdasarkan bulan & tahun"""
     transaksi = Transaksi.objects.filter(
         tanggal__month=bulan,
         tanggal__year=tahun,
@@ -19,7 +18,6 @@ def get_data_laporan(bulan, tahun):
     total_omzet = transaksi.aggregate(s=Sum('total'))['s'] or 0
     total_transaksi = transaksi.count()
 
-    # Produk terlaris + profit
     produk_terlaris = DetailTransaksi.objects.filter(
         transaksi__tanggal__month=bulan,
         transaksi__tanggal__year=tahun,
@@ -30,10 +28,11 @@ def get_data_laporan(bulan, tahun):
         total_omzet=Sum('subtotal'),
     ).order_by('-total_terjual')
 
-    # Hitung profit per produk
     data_produk = []
     total_profit = 0
     for p in produk_terlaris:
+        if p['produk__nama'] is None or p['produk__harga_beli'] is None:
+            continue
         profit = (p['total_omzet'] - (p['produk__harga_beli'] * p['total_terjual']))
         total_profit += profit
         data_produk.append({

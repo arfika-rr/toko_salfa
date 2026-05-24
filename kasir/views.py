@@ -33,6 +33,8 @@ def get_ringkasan(transaksi):
         detail = t.detail.select_related('produk').all()
         grand_total += t.total
         for d in detail:
+            if d.produk is None:
+                continue
             profit_item = (d.harga_satuan - d.produk.harga_beli) * d.jumlah
             total_profit += profit_item
             nama = d.produk.nama
@@ -133,7 +135,11 @@ def riwayat_transaksi(request):
     data_transaksi = []
     for t in transaksi:
         detail = t.detail.select_related('produk').all()
-        keuntungan = sum((d.harga_satuan - d.produk.harga_beli) * d.jumlah for d in detail)
+        keuntungan = sum(
+            (d.harga_satuan - d.produk.harga_beli) * d.jumlah
+            for d in detail
+            if d.produk is not None
+        )
         data_transaksi.append({'obj': t, 'keuntungan': keuntungan})
 
     total_omzet = sum(d['obj'].total for d in data_transaksi)
