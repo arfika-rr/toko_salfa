@@ -13,12 +13,14 @@
       </div>
       <div class="col-md-3">
         <label class="form-label small">Kategori</label>
-        <select name="kategori" class="form-select">
-          <option value="">Semua Kategori</option>
+        <input type="text" name="kategori_nama" id="kategori-input" class="form-control"
+                placeholder="Cari kategori..." value="{{ kategori_nama }}"
+                list="kategori-list" autocomplete="off">
+        <datalist id="kategori-list">
           {% for k in kategori %}
-          <option value="{{ k.id }}" {% if kat_aktif == k.id|stringformat:"s" %}selected{% endif %}>{{ k.nama }}</option>
+          <option value="{{ k.nama }}">
           {% endfor %}
-        </select>
+        </datalist>
       </div>
       <div class="col-md-2">
         <button type="submit" class="btn btn-secondary w-100">Filter</button>

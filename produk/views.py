@@ -8,11 +8,12 @@ def list_produk(request):
     produk = Produk.objects.select_related('kategori').order_by('nama')
     kategori = Kategori.objects.all()
     
-    # Filter
     kat = request.GET.get('kategori')
+    kategori_nama = request.GET.get('kategori_nama', '')
     cari = request.GET.get('cari')
-    if kat:
-        produk = produk.filter(kategori_id=kat)
+    
+    if kategori_nama:
+        produk = produk.filter(kategori__nama__icontains=kategori_nama)
     if cari:
         produk = produk.filter(nama__icontains=cari)
     
@@ -20,6 +21,7 @@ def list_produk(request):
         'produk': produk,
         'kategori': kategori,
         'kat_aktif': kat,
+        'kategori_nama': kategori_nama,
         'cari': cari,
     })
 

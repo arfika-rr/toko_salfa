@@ -85,6 +85,13 @@
             <a href="{% url 'kasir:detail' d.obj.pk %}" class="btn btn-sm btn-outline-primary">
               <i class="bi bi-eye"></i>
             </a>
+            <form method="post" action="{% url 'kasir:hapus' d.obj.pk %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger"
+                      onclick="return confirm('Hapus transaksi {{ d.obj.kode_transaksi }}?')">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
           </td>
         </tr>
         {% empty %}

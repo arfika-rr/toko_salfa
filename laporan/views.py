@@ -40,7 +40,7 @@ def get_data_laporan(bulan, tahun):
             'total_terjual': p['total_terjual'],
             'total_omzet': float(p['total_omzet']),
             'profit': float(profit),
-        })
+        }) 
 
     piutang_belum = Piutang.objects.exclude(status='lunas')
     total_piutang = piutang_belum.aggregate(s=Sum('nominal'))['s'] or 0

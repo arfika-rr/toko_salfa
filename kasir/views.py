@@ -202,6 +202,25 @@ def batal_transaksi(request, pk):
 
     return render(request, 'kasir/batal.html', {'transaksi': transaksi})
 
+@login_required
+def hapus_transaksi(request, pk):
+    transaksi = get_object_or_404(Transaksi, pk=pk)
+    if request.method == 'POST':
+        kode = transaksi.kode_transaksi
+        # Kembalikan stok jika transaksi belum dibatalkan
+        if transaksi.status == 'selesai':
+            for d in transaksi.detail.select_related('produk').all():
+                if d.produk:
+                    d.produk.stok += d.jumlah
+                    d.produk.save()
+        # Hapus piutang terkait jika ada
+        try:
+            transaksi.piutang.delete()
+        except:
+            pass
+        transaksi.delete()
+        messages.success(request, f'Transaksi {kode} berhasil dihapus.')
+    return redirect('kasir:riwayat')
 
 @login_required
 def export_csv(request):
